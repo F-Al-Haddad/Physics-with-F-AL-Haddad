@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Hub | Physics with F AL-Haddad</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0B1A2A;--bg2:#0f2236;--bg3:#132840;
+    --text:#E8F1F8;--text-dim:#8faec7;
+    --primary:#4FC3F7;--accent:#81C784;
+    --glow:rgba(79,195,247,0.3);--gold:#FFD54F;
+    --danger:#EF5350;--success:#66BB6A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+  body::before{
+    content:'';position:fixed;inset:0;
+    background-image:
+      radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,0.7) 0%,transparent 100%),
+      radial-gradient(1px 1px at 40% 65%,rgba(255,255,255,0.5) 0%,transparent 100%),
+      radial-gradient(1px 1px at 65% 35%,rgba(255,255,255,0.8) 0%,transparent 100%),
+      radial-gradient(1px 1px at 85% 75%,rgba(255,255,255,0.4) 0%,transparent 100%),
+      radial-gradient(2px 2px at 25% 88%,rgba(79,195,247,0.5) 0%,transparent 100%),
+      radial-gradient(2px 2px at 75% 12%,rgba(129,199,132,0.4) 0%,transparent 100%);
+    pointer-events:none;z-index:0;
+  }
+  nav{position:sticky;top:0;z-index:100;background:rgba(11,26,42,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(79,195,247,0.2);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .nav-logo{font-family:'Orbitron',monospace;font-size:1rem;color:var(--primary);text-decoration:none;letter-spacing:1px;}
+  .nav-links{display:flex;gap:1.5rem;list-style:none;}
+  .nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.95rem;font-weight:500;transition:color 0.3s;}
+  .nav-links a:hover,.nav-links a.active{color:var(--primary);}
+  .hamburger{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer;}
+  @media(max-width:768px){
+    .hamburger{display:block;}
+    .nav-links{display:none;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:rgba(11,26,42,0.98);padding:1rem 2rem;gap:1rem;border-bottom:1px solid rgba(79,195,247,0.2);}
+    .nav-links.open{display:flex;}
+  }
+
+  .page-hero{position:relative;z-index:1;padding:4rem 2rem 2rem;text-align:center;background:linear-gradient(180deg,rgba(79,195,247,0.05) 0%,transparent 100%);}
+  .page-hero h1{font-family:'Orbitron',monospace;font-size:clamp(1.8rem,5vw,3rem);color:var(--primary);margin-bottom:0.5rem;}
+  .page-hero p{color:var(--text-dim);}
+
+  .hub-container{max-width:1000px;margin:0 auto;padding:2rem;position:relative;z-index:1;}
+
+  /* TABS */
+  .tabs{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:2rem;}
+  .tab{
+    padding:0.6rem 1.4rem;border-radius:100px;font-family:'Tajawal',sans-serif;
+    font-size:0.95rem;font-weight:600;cursor:pointer;border:1px solid rgba(79,195,247,0.2);
+    background:transparent;color:var(--text-dim);transition:all 0.3s;
+  }
+  .tab.active{background:var(--primary);border-color:var(--primary);color:#0B1A2A;}
+  .tab:hover:not(.active){background:rgba(79,195,247,0.1);color:var(--primary);}
+
+  /* TOPIC PANELS */
+  .topic-panel{display:none;}
+  .topic-panel.active{display:block;animation:fadeIn 0.4s ease both;}
+
+  .topic-header{
+    background:linear-gradient(135deg,rgba(15,34,54,0.9),rgba(19,40,64,0.9));
+    border:1px solid rgba(79,195,247,0.2);border-radius:20px;
+    padding:2rem;margin-bottom:1.5rem;
+    display:flex;align-items:flex-start;gap:1.5rem;
+  }
+  @media(max-width:600px){.topic-header{flex-direction:column;}}
+  .topic-header-icon{font-size:4rem;flex-shrink:0;}
+  .topic-header-text h2{font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;color:var(--text);}
+  .topic-header-text p{color:var(--text-dim);line-height:1.7;}
+  .topic-badge-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;}
+  .topic-badge{display:inline-block;padding:0.25rem 0.75rem;border-radius:100px;font-size:0.8rem;font-weight:600;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.25);color:var(--primary);}
+
+  /* CONTENT SECTIONS */
+  .content-section{
+    background:var(--bg2);border:1px solid rgba(79,195,247,0.12);border-radius:16px;
+    padding:1.75rem;margin-bottom:1rem;
+  }
+  .content-section h3{
+    font-size:1.1rem;font-weight:700;color:var(--primary);
+    margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;
+  }
+  .content-section p{color:var(--text-dim);line-height:1.8;margin-bottom:0.75rem;}
+  .content-section p:last-child{margin-bottom:0;}
+  .info-list{list-style:none;display:flex;flex-direction:column;gap:0.5rem;}
+  .info-list li{
+    display:flex;align-items:flex-start;gap:0.75rem;
+    color:var(--text-dim);font-size:0.95rem;line-height:1.6;
+  }
+  .info-list li::before{content:'◆';color:var(--primary);font-size:0.6rem;margin-top:0.4rem;flex-shrink:0;}
+  .highlight-box{
+    background:linear-gradient(135deg,rgba(79,195,247,0.08),rgba(129,199,132,0.05));
+    border:1px solid rgba(79,195,247,0.2);border-right:3px solid var(--primary);
+    border-radius:10px;padding:1rem 1.25rem;margin-top:1rem;
+    font-style:italic;color:var(--text-dim);
+  }
+  .highlight-box strong{color:var(--primary);}
+
+  /* ASSESSMENT */
+  .assessment-btn{
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(135deg,rgba(79,195,247,0.1),rgba(129,199,132,0.05));
+    border:1px solid rgba(79,195,247,0.3);border-radius:14px;
+    padding:1.25rem 1.75rem;cursor:pointer;transition:all 0.3s;
+    font-family:'Tajawal',sans-serif;color:var(--text);width:100%;margin-top:1.5rem;
+  }
+  .assessment-btn:hover{background:rgba(79,195,247,0.15);transform:translateX(-3px);}
+  .assessment-btn-left{display:flex;align-items:center;gap:1rem;}
+  .assessment-btn-icon{font-size:1.5rem;}
+  .assessment-btn-text h4{font-size:1rem;font-weight:700;margin-bottom:0.2rem;}
+  .assessment-btn-text p{font-size:0.85rem;color:var(--text-dim);}
+  .score-chip{
+    display:flex;align-items:center;gap:0.5rem;
+    background:var(--bg3);border:1px solid rgba(79,195,247,0.2);border-radius:8px;
+    padding:0.4rem 0.8rem;font-size:0.85rem;color:var(--primary);font-weight:700;
+  }
+
+  /* OVERALL PROGRESS */
+  .overall-card{
+    background:linear-gradient(135deg,rgba(15,34,54,0.95),rgba(19,40,64,0.95));
+    border:1px solid rgba(79,195,247,0.2);border-radius:20px;
+    padding:2rem;margin-bottom:2rem;
+  }
+  .overall-card h3{font-family:'Orbitron',monospace;font-size:1rem;color:var(--primary);margin-bottom:1.5rem;text-align:center;}
+  .overall-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;}
+  .overall-stat{text-align:center;}
+  .overall-num{font-family:'Orbitron',monospace;font-size:2rem;color:var(--primary);font-weight:700;}
+  .overall-lbl{font-size:0.8rem;color:var(--text-dim);margin-top:0.25rem;}
+  .chart-wrap{position:relative;height:250px;}
+  .badges-row{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:1rem;}
+
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  footer{background:rgba(7,18,30,0.9);border-top:1px solid rgba(79,195,247,0.15);padding:2rem;text-align:center;color:var(--text-dim);font-size:0.9rem;position:relative;z-index:1;}
+  footer span{color:var(--primary);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">⚛ Physics F AL-Haddad</a>
+  <button class="hamburger" onclick="toggleNav()">☰</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">الرئيسية</a></li>
+    <li><a href="games.html">🎮 Edu Games</a></li>
+    <li><a href="hub.html" class="active">📚 Learning Hub</a></li>
+    <li><a href="about.html">👩‍🔬 About Me</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <h1>📚 Learning Hub</h1>
+  <p>تعلّم المواضيع الفيزيائية ثم اختبر نفسك بالألعاب التعليمية</p>
+</div>
+
+<div class="hub-container">
+
+  <!-- OVERALL -->
+  <div class="overall-card">
+    <h3>📊 إحصائياتك الكلية</h3>
+    <div class="overall-grid">
+      <div class="overall-stat"><div class="overall-num" id="totalScore">0</div><div class="overall-lbl">مجموع نقاطك</div></div>
+      <div class="overall-stat"><div class="overall-num" id="gamesPlayed">0</div><div class="overall-lbl">ألعاب أكملتها</div></div>
+      <div class="overall-stat"><div class="overall-num" id="badgesCount">0</div><div class="overall-lbl">شارات مكتسبة</div></div>
+      <div class="overall-stat"><div class="overall-num" id="avgScore">-</div><div class="overall-lbl">متوسط الدرجات</div></div>
+    </div>
+    <div class="chart-wrap"><canvas id="overallChart"></canvas></div>
+    <div class="badges-row" id="badgesRow"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('dark')">🌌 المادة المعتمة</button>
+    <button class="tab" onclick="showTab('carbon')">🌿 البصمة الكربونية</button>
+    <button class="tab" onclick="showTab('agri')">🌾 الزراعة النووية</button>
+    <button class="tab" onclick="showTab('nano')">⚛️ علم النانو</button>
+    <button class="tab" onclick="showTab('green')">🔋 المستقبل الأخضر</button>
+    <button class="tab" onclick="showTab('modern')">💡 الفيزياء اليومية</button>
+  </div>
+
+  <!-- PANEL 1: Dark Matter -->
+  <div class="topic-panel active" id="panel-dark">
+    <div class="topic-header">
+      <div class="topic-header-icon">🌌</div>
+      <div class="topic-header-text">
+        <h2>المادة المعتمة في الكون</h2>
+        <p>المادة المعتمة هي أحد أكبر الألغاز في الفيزياء الحديثة. رغم أننا لا نستطيع رؤيتها أو قياسها مباشرة، فإنها تُشكّل نحو 27% من مادة الكون وتلعب دوراً محورياً في تشكّل المجرات والبنية الكونية الكبرى.</p>
+        <div class="topic-badge-row">
+          <span class="topic-badge">كوزمولوجيا</span>
+          <span class="topic-badge">جسيمات دون ذرية</span>
+          <span class="topic-badge">تركيب الكون</span>
+        </div>
+      </div>
+    </div>
+    <div class="content-section">
+      <h3>🔭 ما هي المادة المعتمة؟</h3>
+      <p>المادة المعتمة مادة افتراضية لا تُصدر ضوءاً ولا تمتصه ولا تعكسه، ولذلك لا يمكن رؤيتها بالتلسكوبات العادية. الدليل على وجودها يأتي بشكل أساسي من الجاذبية — فهي تُمارس جاذبية على المادة العادية والضوء.</p>
+      <p>اكتشف الفلكي فريتز زويكي عام 1933 أن عناقيد المجرات تحتاج إلى كتلة أكبر بكثير مما يمكن رؤيته لتظل متماسكة. وهذا ما قاد العلماء إلى افتراض وجود مادة غير مرئية.</p>
+    </div>
+    <div class="content-section">
+      <h3>📐 تركيب الكون</h3>
+      <ul class="info-list">
+        <li>المادة العادية (الباريونية): 5% فقط — هي كل ما نرى ونلمس</li>
+        <li>المادة المعتمة: 27% — جاذبية بلا ضوء</li>
+        <li>الطاقة المعتمة: 68% — تُسبب تسارع تمدد الكون</li>
+      </ul>
+      <div class="highlight-box"><strong>حقيقة مدهشة:</strong> كل ما نعرفه عن الكون — النجوم، الكواكب، المجرات — لا يمثل سوى 5% من محتواه!</div>
+    </div>
+    <div class="content-section">
+      <h3>🔬 البحث عن المادة المعتمة</h3>
+      <p>يسعى العلماء للكشف عن المادة المعتمة عبر ثلاثة مسارات: الكشف المباشر في مختبرات عميقة تحت الأرض، الكشف غير المباشر عبر رصد منتجات تحللها، وإنتاجها في المصادمات الكبرى كـ LHC في سيرن.</p>
+      <ul class="info-list">
+        <li>WIMPs: جسيمات ضخمة تتفاعل ضعيفاً — أبرز المرشحين</li>
+        <li>Axions: جسيمات خفيفة جداً تُدرس حالياً</li>
+        <li>Sterile Neutrinos: نيوترينات خاملة لا تتفاعل كيميائياً</li>
+      </ul>
+    </div>
+    <button class="assessment-btn" onclick="goToGame('dark_matter')">
+      <div class="assessment-btn-left">
+        <div class="assessment-btn-icon">🎮</div>
+        <div class="assessment-btn-text">
+          <h4>اختبر معلوماتك!</h4>
+          <p>العب لعبة المادة المعتمة — 6 أسئلة تفاعلية</p>
+        </div>
+      </div>
+      <div class="score-chip" id="score-dark_matter">⭐ العب الآن</div>
+    </button>
+  </div>
+
+  <!-- PANEL 2: Carbon -->
+  <div class="topic-panel" id="panel-carbon">
+    <div class="topic-header">
+      <div class="topic-header-icon">🌿</div>
+      <div class="topic-header-text">
+        <h2>البصمة الكربونية والتفاعلات النووية</h2>
+        <p>تُعدّ البصمة الكربونية أحد أهم المفاهيم البيئية في عصرنا. التفاعلات النووية تقدم حلاً واعداً لتوليد طاقة ضخمة دون انبعاثات كربونية تُضر بالمناخ.</p>
+        <div class="topic-badge-row">
+          <span class="topic-badge">بيئة وطاقة</span>
+          <span class="topic-badge">تغير المناخ</span>
+          <span class="topic-badge">طاقة نووية</span>
+        </div>
+      </div>
+    </div>
+    <div class="content-section">
+      <h3>🌍 البصمة الكربونية</h3>
+      <p>البصمة الكربونية هي إجمالي انبعاثات غازات الدفيئة الناجمة عن نشاط فرد أو منظمة أو منتج، وتُقاس بالكيلوجرامات أو الأطنان من ثاني أكسيد الكربون المكافئ (CO₂e).</p>
+      <p>يُنتج توليد الكهرباء من الفحم نحو 820 جرام CO₂ لكل كيلوواط/ساعة، بينما الطاقة النووية تُنتج أقل من 12 جراماً للكيلوواط/ساعة على مدار دورة حياتها كاملة.</p>
+    </div>
+    <div class="content-section">
+      <h3>⚡ الطاقة النووية والمناخ</h3>
+      <ul class="info-list">
+        <li>الطاقة النووية تُقلل الاعتماد على الوقود الأحفوري بشكل جذري</li>
+        <li>محطة نووية واحدة تعادل مئات محطات الفحم في الطاقة المنتجة</li>
+        <li>الانشطار النووي يُطلق طاقة أكبر بملايين المرات من احتراق الوقود التقليدي</li>
+        <li>دول كفرنسا تُنتج 70% من كهربائها نووياً بانبعاثات منخفضة جداً</li>
+      </ul>
+    </div>
+    <div class="content-section">
+      <h3>🔬 الانشطار والاندماج النووي</h3>
+      <p>الانشطار النووي: انشطار نواة ثقيلة (يورانيوم-235) إثر قذفها بنيوترون يُطلق طاقة هائلة ونيوترونات تُكمل التفاعل المتسلسل.</p>
+      <p>الاندماج النووي: اندماج نواتي هيدروجين خفيفتين لتكوين هيليوم مع إطلاق طاقة هائلة — هذا ما يجعل الشمس تضيء.</p>
+      <div class="highlight-box"><strong>مقارنة:</strong> 1 كجم يورانيوم = طاقة 3 ملايين كجم فحم — بدون انبعاثات!</div>
+    </div>
+    <button class="assessment-btn" onclick="goToGame('carbon')">
+      <div class="assessment-btn-left">
+        <div class="assessment-btn-icon">🎮</div>
+        <div class="assessment-btn-text">
+          <h4>اختبر معلوماتك!</h4>
+          <p>العب لعبة البصمة الكربونية — 6 أسئلة تفاعلية</p>
+        </div>
+      </div>
+      <div class="score-chip" id="score-carbon">⭐ العب الآن</div>
+    </button>
+  </div>
+
+  <!-- PANEL 3: Agriculture -->
+  <div class="topic-panel" id="panel-agri">
+    <div class="topic-header">
+      <div class="topic-header-icon">🌾</div>
+      <div class="topic-header-text">
+        <h2>التقنيات النووية والزراعة المستدامة</h2>
+        <p>تستخدم الوكالة الدولية للطاقة الذرية (IAEA) التقنيات النووية لتحسين الإنتاج الزراعي ومكافحة الجوع في العالم.</p>
+        <div class="topic-badge-row">
+          <span class="topic-badge">زراعة مستدامة</span>
+          <span class="topic-badge">IAEA</span>
+          <span class="topic-badge">أمن غذائي</span>
+        </div>
+      </div>
+    </div>
+    <div class="content-section">
+      <h3>🌱 الطفرات الجينية الإشعاعية</h3>
+      <p>منذ الخمسينيات، طوّر العلماء أكثر من 3300 صنف نباتي محسّن باستخدام الإشعاع لإحداث طفرات جينية مفيدة. هذه الأصناف أكثر إنتاجية ومقاومة للجفاف والأمراض.</p>
+      <ul class="info-list">
+        <li>أصناف قمح تتحمل الجفاف نُمّيت في 60 دولة</li>
+        <li>أرز "ماتا" المحسّن إشعاعياً يُقاوم الفيضانات في آسيا</li>
+        <li>فول الصويا عالي البروتين المُطوَّر بالطفرات النووية</li>
+      </ul>
+    </div>
+    <div class="content-section">
+      <h3>🦟 تقنية الحشرات العقيمة (SIT)</h3>
+      <p>تعتمد على تعقيم الذكور من الحشرات الضارة بالإشعاع، ثم إطلاقها في البرية. عند تزاوجها مع الإناث لا تنتج ذرية، فتنخفض أعداد الحشرات تدريجياً دون مبيدات كيميائية.</p>
+      <div class="highlight-box"><strong>نجاح كبير:</strong> استأصلت SIT ذبابة دودة الجرح من ليبيا وأمريكا الوسطى، مما وفّر مليارات الدولارات.</div>
+    </div>
+    <div class="content-section">
+      <h3>🔬 التأشير بالنظائر المُشعة</h3>
+      <p>باستخدام نظائر مُشعة كنيتروجين-15 وفوسفور-32، يمكن تتبع كيفية استيعاب النباتات للأسمدة وتحديد الكميات المثلى، مما يُقلل الهدر ويحمي البيئة.</p>
+    </div>
+    <button class="assessment-btn" onclick="goToGame('agri')">
+      <div class="assessment-btn-left">
+        <div class="assessment-btn-icon">🎮</div>
+        <div class="assessment-btn-text">
+          <h4>اختبر معلوماتك!</h4>
+          <p>العب لعبة الزراعة النووية — 6 أسئلة تفاعلية</p>
+        </div>
+      </div>
+      <div class="score-chip" id="score-agri">⭐ العب الآن</div>
+    </button>
+  </div>
+
+  <!-- PANEL 4: Nano -->
+  <div class="topic-panel" id="panel-nano">
+    <div class="topic-header">
+      <div class="topic-header-icon">⚛️</div>
+      <div class="topic-header-text">
+        <h2>علم النانو والتفاعلات النووية</h2>
+        <p>علم النانو يستكشف خصائص المواد على المستوى الذري والجزيئي، حيث تظهر خصائص فريدة غير موجودة في المقاييس الكبيرة.</p>
+        <div class="topic-badge-row">
+          <span class="topic-badge">نانو تقنية</span>
+          <span class="topic-badge">طب نووي</span>
+          <span class="topic-badge">مواد متقدمة</span>
+        </div>
+      </div>
+    </div>
+    <div class="content-section">
+      <h3>📏 مقياس النانو</h3>
+      <p>النانومتر واحد من المليار من المتر — شعرة الإنسان تعادل 80,000 نانومتر عرضاً. في هذا المقياس تتغير الخصائص الفيزيائية والكيميائية للمواد جذرياً.</p>
+      <ul class="info-list">
+        <li>الذهب النانوي أحمر اللون بدل الذهبي وله خصائص كيميائية مختلفة</li>
+        <li>الكربون النانوي (أنابيب وغرافين) أقوى من الفولاذ بكثير</li>
+        <li>جسيمات النانو لها نسبة مساحة سطح ضخمة جداً</li>
+      </ul>
+    </div>
+    <div class="content-section">
+      <h3>💊 الطب النووي النانوي</h3>
+      <p>أحد أهم التطبيقات هو استخدام جسيمات النانو لنقل النظائر المُشعة أو العوامل المُحفّزة للإشعاع مباشرة إلى خلايا الورم. هذا يُتيح علاجاً مُستهدفاً يُدمّر الأورام دون إلحاق ضرر بالأنسجة السليمة.</p>
+      <div class="highlight-box"><strong>تطبيق ثوري:</strong> نانو جسيمات الذهب المُشعة تُضاعف تأثير الإشعاع على الأورام بدقة فائقة.</div>
+    </div>
+    <div class="content-section">
+      <h3>🏭 النانو في مفاعلات المستقبل</h3>
+      <p>تحتاج مفاعلات الجيل الجديد مواد تتحمل درجات حرارة فائقة وإشعاعاً مستمراً. علم النانو يُطور سبائك معدنية نانوية ومواد مركبة تُعزز متانة الحوائل وكفاءة التبريد.</p>
+    </div>
+    <button class="assessment-btn" onclick="goToGame('nano')">
+      <div class="assessment-btn-left">
+        <div class="assessment-btn-icon">🎮</div>
+        <div class="assessment-btn-text">
+          <h4>اختبر معلوماتك!</h4>
+          <p>العب لعبة النانو — 6 أسئلة تفاعلية</p>
+        </div>
+      </div>
+      <div class="score-chip" id="score-nano">⭐ العب الآن</div>
+    </button>
+  </div>
+
+  <!-- PANEL 5: Green -->
+  <div class="topic-panel" id="panel-green">
+    <div class="topic-header">
+      <div class="topic-header-icon">🔋</div>
+      <div class="topic-header-text">
+        <h2>الطاقة النووية والمستقبل الأخضر</h2>
+        <p>مع تصاعد أزمة المناخ، تُعيد دول العالم النظر في الطاقة النووية كركيزة أساسية لمستقبل طاقة نظيف ومستدام.</p>
+        <div class="topic-badge-row">
+          <span class="topic-badge">طاقة نظيفة</span>
+          <span class="topic-badge">اندماج نووي</span>
+          <span class="topic-badge">SMR</span>
+        </div>
+      </div>
+    </div>
+    <div class="content-section">
+      <h3>🌱 لماذا الطاقة النووية خضراء؟</h3>
+      <p>رغم المخاوف الشعبية، تُصنَّف الطاقة النووية ضمن أدنى المصادر في انبعاثات الكربون على مدار دورة حياتها. كما أنها توفر طاقة مستمرة على مدار الساعة بخلاف الطاقة الشمسية والريحية المتقطعتين.</p>
+      <ul class="info-list">
+        <li>لا انبعاثات CO₂ أثناء التشغيل</li>
+        <li>كثافة طاقة هائلة: حجم صغير من الوقود = طاقة ضخمة</li>
+        <li>ثبات الإنتاج بغض النظر عن الطقس</li>
+        <li>بصمة أرضية صغيرة مقارنة بالطاقة الشمسية والريحية</li>
+      </ul>
+    </div>
+    <div class="content-section">
+      <h3>⚡ مفاعلات الجيل الرابع و SMR</h3>
+      <p>المفاعلات الصغيرة المعيارية (SMR) ثورة في صناعة الطاقة النووية — يمكن تصنيعها في المصنع وشحنها لأي مكان، مما يُتيح استخداماتٍ متعددة كتحلية المياه وتدفئة المدن.</p>
+      <div class="highlight-box"><strong>مشروع ITER:</strong> في جنوب فرنسا، 35 دولة تبني أكبر مفاعل اندماج لإثبات أن الاندماج مصدر طاقة تجاري مستدام.</div>
+    </div>
+    <div class="content-section">
+      <h3>🔮 مستقبل الهيدروجين النووي</h3>
+      <p>الحرارة الفائقة من مفاعلات الجيل الجديد يمكن استخدامها لتحليل الماء وإنتاج هيدروجين نظيف — وقود المستقبل للسيارات والطائرات والصناعة دون انبعاثات.</p>
+    </div>
+    <button class="assessment-btn" onclick="goToGame('green')">
+      <div class="assessment-btn-left">
+        <div class="assessment-btn-icon">🎮</div>
+        <div class="assessment-btn-text">
+          <h4>اختبر معلوماتك!</h4>
+          <p>العب لعبة المستقبل الأخضر — 6 أسئلة تفاعلية</p>
+        </div>
+      </div>
+      <div class="score-chip" id="score-green">⭐ العب الآن</div>
+    </button>
+  </div>
+
+  <!-- PANEL 6: Modern Physics -->
+  <div class="topic-panel" id="panel-modern">
+    <div class="topic-header">
+      <div class="topic-header-icon">💡</div>
+      <div class="topic-header-text">
+        <h2>تطبيقات الفيزياء الحديثة في الحياة اليومية</h2>
+        <p>الفيزياء ليست نظرية جافة — إنها في كل جانب من حياتك اليومية، من هاتفك إلى GPS إلى المستشفى.</p>
+        <div class="topic-badge-row">
+          <span class="topic-badge">ميكانيكا الكم</span>
+          <span class="topic-badge">نسبية</span>
+          <span class="topic-badge">تطبيقات طبية</span>
+        </div>
+      </div>
+    </div>
+    <div class="content-section">
+      <h3>🏥 الطب والفيزياء</h3>
+      <ul class="info-list">
+        <li>الرنين المغناطيسي (MRI): يستخدم الرنين المغناطيسي النووي لبروتونات الهيدروجين</li>
+        <li>PET Scan: يستخدم نظائر مُشعة موجبة الإلكترون لتصوير نشاط الأعضاء</li>
+        <li>العلاج الإشعاعي: يُدمّر خلايا السرطان بأشعة جاما أو جسيمات ألفا</li>
+        <li>الأشعة السينية: اكتُشفت عام 1895 وما زالت ركيزة التشخيص الطبي</li>
+      </ul>
+    </div>
+    <div class="content-section">
+      <h3>📱 التكنولوجيا والكم</h3>
+      <p>ترانزستور الشريحة الإلكترونية يعتمد على ميكانيكا الكم — بدونها لا هواتف ذكية ولا كمبيوتر. الليزر يعمل بالانبعاث المُحفَّز الذي افترضه أينشتاين. شبكات GPS تُصحَّح بالنسبية العامة للحفاظ على دقتها.</p>
+      <div class="highlight-box"><strong>حقيقة مذهلة:</strong> الفيزياء الكمومية تُسيطر على 35% من الناتج القومي الأمريكي من خلال التكنولوجيا المبنية عليها!</div>
+    </div>
+    <div class="content-section">
+      <h3>🌐 الطاقة في حياتنا</h3>
+      <p>الألواح الشمسية تُطبّق الظاهرة الكهروضوئية (فيزياء الكم). محطات الطاقة النووية تُطبّق الانشطار. محركات السيارات الكهربائية تُطبّق قوانين الحث الكهرومغناطيسي التي صاغها فاراداي ومكسويل.</p>
+    </div>
+    <button class="assessment-btn" onclick="goToGame('modern')">
+      <div class="assessment-btn-left">
+        <div class="assessment-btn-icon">🎮</div>
+        <div class="assessment-btn-text">
+          <h4>اختبر معلوماتك!</h4>
+          <p>العب لعبة الفيزياء اليومية — 6 أسئلة تفاعلية</p>
+        </div>
+      </div>
+      <div class="score-chip" id="score-modern">⭐ العب الآن</div>
+    </button>
+  </div>
+
+</div>
+
+<footer>
+  <p>صُنع بـ ❤️ بواسطة <span>فاطمة عبدالله حمد الحداد</span> | مدرسة جدحفص الثانوية للبنات</p>
+  <p style="margin-top:0.5rem;font-size:0.8rem;">⚛ Physics with F AL-Haddad &copy; 2025</p>
+</footer>
+
+<script>
+const TAB_MAP = {dark:'panel-dark',carbon:'panel-carbon',agri:'panel-agri',nano:'panel-nano',green:'panel-green',modern:'panel-modern'};
+const GAME_MAP = {dark_matter:'dark',carbon:'carbon',agri:'agri',nano:'nano',green:'green',modern:'modern'};
+
+function showTab(id){
+  document.querySelectorAll('.topic-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(TAB_MAP[id]).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function goToGame(gameId){
+  window.location.href = `games.html`;
+  sessionStorage.setItem('openGame', gameId);
+}
+
+function loadScores(){
+  const scores = JSON.parse(localStorage.getItem('physicsScores') || '{}');
+  const GAME_IDS = ['dark_matter','carbon','agri','nano','green','modern'];
+  const SCORE_EL_MAP = {dark_matter:'dark_matter',carbon:'carbon',agri:'agri',nano:'nano',green:'green',modern:'modern'};
+
+  let total=0, played=0, badges=0;
+  GAME_IDS.forEach(id=>{
+    const s = scores[id];
+    const el = document.getElementById('score-'+id);
+    if(el && s){
+      el.textContent = `✅ ${s.score}/6`;
+      total += s.score; played++;
+      if(s.score >= 4) badges++;
+    }
+  });
+
+  document.getElementById('totalScore').textContent = total;
+  document.getElementById('gamesPlayed').textContent = played;
+  document.getElementById('badgesCount').textContent = badges;
+  document.getElementById('avgScore').textContent = played ? (total/played).toFixed(1) : '-';
+
+  // Badges row
+  const badgesRow = document.getElementById('badgesRow');
+  const badgesList = [];
+  GAME_IDS.forEach(id=>{
+    const s = scores[id];
+    if(s && s.score===6) badgesList.push(`<span style="background:rgba(255,213,79,0.15);border:1px solid rgba(255,213,79,0.3);border-radius:100px;padding:0.3rem 0.8rem;font-size:0.8rem;color:#FFD54F;">🏆 خبير: ${id.replace('_',' ')}</span>`);
+    else if(s && s.score>=4) badgesList.push(`<span style="background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.3);border-radius:100px;padding:0.3rem 0.8rem;font-size:0.8rem;color:#4FC3F7;">⭐ متفوق: ${id.replace('_',' ')}</span>`);
+  });
+  badgesRow.innerHTML = badgesList.join('');
+
+  // Chart
+  const labels = ['المادة المعتمة','البصمة الكربونية','الزراعة النووية','النانو','المستقبل الأخضر','الفيزياء اليومية'];
+  const data = GAME_IDS.map(id=> scores[id] ? scores[id].score : 0);
+  const ctx = document.getElementById('overallChart').getContext('2d');
+  new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels,
+      datasets:[{
+        label:'درجتك من 6',data,
+        backgroundColor:'rgba(79,195,247,0.15)',
+        borderColor:'#4FC3F7',borderWidth:2,
+        pointBackgroundColor:'#81C784',pointRadius:5,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#E8F1F8',font:{family:'Tajawal'}}}},
+      scales:{r:{
+        min:0,max:6,ticks:{stepSize:2,color:'#8faec7',backdropColor:'transparent'},
+        grid:{color:'rgba(255,255,255,0.08)'},
+        pointLabels:{color:'#8faec7',font:{family:'Tajawal',size:11}},
+      }}
+    }
+  });
+}
+
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open');}
+loadScores();
+</script>
+</body>
+</html>

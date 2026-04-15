@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physics with F AL-Haddad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B1A2A;
+    --bg2: #0f2236;
+    --bg3: #132840;
+    --text: #E8F1F8;
+    --text-dim: #8faec7;
+    --primary: #4FC3F7;
+    --accent: #81C784;
+    --glow: rgba(79,195,247,0.3);
+    --glow-green: rgba(129,199,132,0.3);
+    --danger: #EF5350;
+    --gold: #FFD54F;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 30%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 55%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(2px 2px at 15% 85%, rgba(79,195,247,0.6) 0%, transparent 100%),
+      radial-gradient(2px 2px at 65% 10%, rgba(129,199,132,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 85%, rgba(255,255,255,0.7) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(11,26,42,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(79,195,247,0.2);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    color: var(--primary);
+    text-decoration: none;
+    letter-spacing: 1px;
+    text-shadow: 0 0 12px var(--glow);
+  }
+  .nav-links { display:flex; gap:1.5rem; list-style:none; }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content:''; position:absolute; bottom:-4px; right:0; width:0; height:2px;
+    background: var(--primary); transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--primary); }
+  .nav-links a:hover::after { width:100%; }
+  .hamburger { display:none; background:none; border:none; color:var(--text); font-size:1.5rem; cursor:pointer; }
+  @media(max-width:768px) {
+    .hamburger { display:block; }
+    .nav-links { display:none; flex-direction:column; position:absolute; top:64px; left:0; right:0;
+      background:rgba(11,26,42,0.98); padding:1rem 2rem; gap:1rem; border-bottom:1px solid rgba(79,195,247,0.2); }
+    .nav-links.open { display:flex; }
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(79,195,247,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(79,195,247,0.1);
+    border: 1px solid rgba(79,195,247,0.3);
+    border-radius: 100px;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.85rem;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    animation: fadeInDown 0.8s ease both;
+  }
+  .hero h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeInDown 1s ease 0.2s both;
+  }
+  .hero p {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    color: var(--text-dim);
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    animation: fadeInDown 1s ease 0.4s both;
+  }
+  .hero-btns {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeInDown 1s ease 0.6s both;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+    border: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), #29b6f6);
+    color: #0B1A2A;
+    box-shadow: 0 4px 20px rgba(79,195,247,0.4);
+  }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(79,195,247,0.6); }
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+  }
+  .btn-outline:hover { background: rgba(129,199,132,0.1); transform: translateY(-3px); }
+
+  /* FLOATING ATOMS */
+  .atoms {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .atom {
+    position: absolute;
+    width: 60px; height: 60px;
+    border: 1px solid rgba(79,195,247,0.15);
+    border-radius: 50%;
+    animation: float linear infinite;
+  }
+  .atom::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(129,199,132,0.15);
+    border-radius: 50%;
+  }
+  @keyframes float {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+  }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; }
+  .section-title {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  .section-title h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+  }
+  .section-title p { color: var(--text-dim); font-size: 1rem; }
+  .divider {
+    width: 80px; height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    margin: 1rem auto 0;
+    border-radius: 2px;
+  }
+
+  /* TOPICS GRID */
+  .topics { padding: 5rem 2rem; }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .topic-card {
+    background: rgba(15,34,54,0.8);
+    border: 1px solid rgba(79,195,247,0.15);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+  }
+  .topic-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.4s;
+  }
+  .topic-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(79,195,247,0.4);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(79,195,247,0.1);
+  }
+  .topic-card:hover::before { transform: scaleX(1); }
+  .topic-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+  .topic-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
+  .topic-card p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; }
+  .topic-tag {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(79,195,247,0.1);
+    border: 1px solid rgba(79,195,247,0.3);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    color: var(--primary);
+  }
+
+  /* QUICK NAV */
+  .quick-nav { padding: 4rem 2rem; background: rgba(15,34,54,0.5); }
+  .quick-nav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .nav-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--bg3);
+    border: 1px solid rgba(79,195,247,0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(79,195,247,0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .nav-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(79,195,247,0.2); }
+  .nav-card:hover::after { opacity: 1; }
+  .nav-card-icon { font-size: 2.5rem; flex-shrink: 0; }
+  .nav-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .nav-card p { font-size: 0.85rem; color: var(--text-dim); }
+  .nav-card-arrow { margin-right: auto; color: var(--primary); font-size: 1.3rem; opacity: 0; transition: opacity 0.3s, transform 0.3s; }
+  .nav-card:hover .nav-card-arrow { opacity: 1; transform: translateX(-4px); }
+
+  /* STATS */
+  .stats { padding: 4rem 2rem; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .stat-card {
+    text-align: center;
+    background: var(--bg2);
+    border: 1px solid rgba(79,195,247,0.15);
+    border-radius: 12px;
+    padding: 2rem 1rem;
+  }
+  .stat-number { font-family:'Orbitron',monospace; font-size:2.5rem; color:var(--primary); font-weight:700; }
+  .stat-label { font-size:0.9rem; color:var(--text-dim); margin-top:0.5rem; }
+
+  /* FOOTER */
+  footer {
+    background: rgba(7,18,30,0.9);
+    border-top: 1px solid rgba(79,195,247,0.15);
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 1;
+  }
+  footer span { color: var(--primary); }
+
+  @keyframes fadeInDown {
+    from { opacity:0; transform:translateY(-20px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  @keyframes pulse {
+    0%,100% { opacity:0.5; transform:scale(1); }
+    50% { opacity:1; transform:scale(1.05); }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">⚛ Physics F AL-Haddad</a>
+  <button class="hamburger" onclick="toggleNav()">☰</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">الرئيسية</a></li>
+    <li><a href="games.html">🎮 Edu Games</a></li>
+    <li><a href="hub.html">📚 Learning Hub</a></li>
+    <li><a href="about.html">👩‍🔬 About Me</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="atoms" id="atoms"></div>
+
+  <div class="hero-badge">✨ موقع فيزياء تعليمي تفاعلي</div>
+  <h1>Physics with<br>F AL-Haddad</h1>
+  <p>استكشف عالم الفيزياء الحديثة من خلال ألعاب تعليمية تفاعلية وشروحات علمية شيقة تأخذك في رحلة إلى أعماق الكون</p>
+  <div class="hero-btns">
+    <a href="games.html" class="btn btn-primary">🎮 ابدأ الألعاب</a>
+    <a href="hub.html" class="btn btn-outline">📚 مركز التعلم</a>
+  </div>
+</section>
+
+<section class="topics">
+  <div class="section-title">
+    <h2>المواضيع العلمية</h2>
+    <p>خمسة مواضيع فيزيائية متقدمة تغطي أحدث مجالات العلوم</p>
+    <div class="divider"></div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card">
+      <span class="topic-icon">🌌</span>
+      <h3>المادة المعتمة في الكون</h3>
+      <p>اكتشف أسرار المادة التي تشكّل 27% من الكون ولا يمكن رؤيتها، وكيف تؤثر على تشكّل المجرات والبنية الكونية.</p>
+      <span class="topic-tag">كوزمولوجيا</span>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🌿</span>
+      <h3>البصمة الكربونية والتفاعلات النووية</h3>
+      <p>تعرّف على العلاقة بين التفاعلات النووية والبيئة، وكيف يمكن للطاقة النووية أن تقلل من الانبعاثات الكربونية.</p>
+      <span class="topic-tag">بيئة وطاقة</span>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🌾</span>
+      <h3>التقنيات النووية والزراعة المستدامة</h3>
+      <p>استكشف تطبيقات التقنيات النووية في تطوير المحاصيل ومكافحة الآفات وتحسين الإنتاج الزراعي عالمياً.</p>
+      <span class="topic-tag">زراعة وتقنية</span>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">⚛️</span>
+      <h3>علم النانو والتفاعلات النووية</h3>
+      <p>ادخل إلى عالم الجسيمات النانوية وكيف تتفاعل مع المواد على المستوى الذري لإنتاج مواد ثورية.</p>
+      <span class="topic-tag">نانو تقنية</span>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🔋</span>
+      <h3>الطاقة النووية والمستقبل الأخضر</h3>
+      <p>استشرف مستقبل الطاقة النووية كبديل نظيف وآمن، ودورها في مواجهة تحديات التغير المناخي.</p>
+      <span class="topic-tag">طاقة مستدامة</span>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="section-title">
+    <h2>أرقام الموقع</h2>
+    <div class="divider"></div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">6</div>
+      <div class="stat-label">ألعاب تعليمية</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">36</div>
+      <div class="stat-label">سؤال تفاعلي</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">5</div>
+      <div class="stat-label">موضوع فيزيائي</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">🏆</div>
+      <div class="stat-label">نظام الشارات</div>
+    </div>
+  </div>
+</section>
+
+<section class="quick-nav">
+  <div class="section-title">
+    <h2>انتقل إلى</h2>
+    <div class="divider"></div>
+  </div>
+  <div class="quick-nav-grid">
+    <a href="games.html" class="nav-card">
+      <div class="nav-card-icon">🎮</div>
+      <div>
+        <h3>Edu Games</h3>
+        <p>العب واختبر معلوماتك في 6 ألعاب تفاعلية</p>
+      </div>
+      <div class="nav-card-arrow">←</div>
+    </a>
+    <a href="hub.html" class="nav-card">
+      <div class="nav-card-icon">📚</div>
+      <div>
+        <h3>Learning Hub</h3>
+        <p>تعلم المواضيع وقيّم نفسك بالألعاب</p>
+      </div>
+      <div class="nav-card-arrow">←</div>
+    </a>
+    <a href="about.html" class="nav-card">
+      <div class="nav-card-icon">👩‍🔬</div>
+      <div>
+        <h3>About Me</h3>
+        <p>تعرف على صاحبة الموقع</p>
+      </div>
+      <div class="nav-card-arrow">←</div>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <p>صُنع بـ ❤️ بواسطة <span>فاطمة عبدالله حمد الحداد</span> | مدرسة جدحفص الثانوية للبنات</p>
+  <p style="margin-top:0.5rem; font-size:0.8rem;">⚛ Physics with F AL-Haddad &copy; 2025</p>
+</footer>
+
+<script>
+function toggleNav(){
+  document.getElementById('navLinks').classList.toggle('open');
+}
+
+// Floating atoms
+const atomsContainer = document.getElementById('atoms');
+for(let i=0;i<12;i++){
+  const a = document.createElement('div');
+  a.className = 'atom';
+  const size = 40 + Math.random()*80;
+  a.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    animation-duration:${10+Math.random()*20}s;
+    animation-delay:-${Math.random()*20}s;
+    opacity:${0.1+Math.random()*0.2};
+  `;
+  atomsContainer.appendChild(a);
+}
+
+// Animate stats on scroll
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.animation = 'pulse 2s ease infinite';
+    }
+  });
+},{threshold:0.5});
+document.querySelectorAll('.stat-number').forEach(n=>observer.observe(n));
+</script>
+</body>
+</html>
